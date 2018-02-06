@@ -8,6 +8,8 @@ from flask import Blueprint, render_template, url_for, request
 
 import requests
 
+from .utils import IIIFUrl
+
 
 __author__ = "Brian Balsamo"
 __email__ = "brian@brianbalsamo.com"
@@ -60,7 +62,16 @@ def get_thumbnail(rec, width=200, height=200, preserve_ratio=True):
         pass
     # If one is hardcoded
     if rec.get('thumbnail'):
-        return rec['thumbnail']['@id']+"/full/{},{}/0/default.jpg".format(width, height)
+        # If the thumbnail claims the IIIF Image API Service
+        if rec['thumbnail'].get("service") and \
+                rec['thumbnail']['service'].get("@context") in  \
+                ["http://iiif.io/api/image/2/context.json"]:
+            u = IIIFUrl.from_url(rec['thumbnail']['@id'])
+            u.size = "{},{}".format(width, height)
+            return u.to_image_url()
+        # Otherwise it's just a link
+        if rec['thumbnail'].get("@id"):
+            return rec['thumbnail']['@id']
     # Dynamic functionality - get the first image that should be relevant
     if rec['@type'] == "sc:Collection":
         # prefer the first member, if it exists
@@ -94,7 +105,11 @@ def get_thumbnail(rec, width=200, height=200, preserve_ratio=True):
         # TODO: Actually parse the URL
         # Time for a hack for just the moment
         x = rec['resource']['@id']
-        return x.split(".tif")[0] + ".tif" + "/full/{},{}/0/default.jpg".format(width, height)
+        print(x)
+        u = IIIFUrl.from_url(x)
+        u.size = "{},{}".format(width, height)
+        print(u.to_image_url())
+        return u.to_image_url()
     else:
         raise ValueError()
 
