@@ -105,10 +105,8 @@ def get_thumbnail(rec, width=200, height=200, preserve_ratio=True):
         # TODO: Actually parse the URL
         # Time for a hack for just the moment
         x = rec['resource']['@id']
-        print(x)
         u = IIIFUrl.from_url(x)
         u.size = "{},{}".format(width, height)
-        print(u.to_image_url())
         return u.to_image_url()
     else:
         raise ValueError()
