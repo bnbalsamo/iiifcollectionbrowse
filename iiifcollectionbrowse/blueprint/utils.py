@@ -2,6 +2,9 @@ import re
 import urllib.parse
 
 
+# {scheme}://{server}{/prefix}/{identifier}/{region}/{size}/{rotation}/{quality}.{format}
+
+
 class ParameterError(Exception):
     pass
 
@@ -42,12 +45,12 @@ class IIIFUrl:
             p = urllib.parse.urlparse(url).path
             if len(p.split("/")) > 3:
                 return "/".join(p.split("/")[0:-2])
-            return "/"
+            return ""
         else:
             p = urllib.parse.urlparse(url).path
             if len(p.split("/")) > 6:
                 return "/".join(p.split("/")[0:-5])
-            return "/"
+            return ""
 
     @classmethod
     def parse_identifier_url_component(cls, url):
@@ -227,7 +230,7 @@ class IIIFUrl:
             self.validate()
 
     def to_image_url(self):
-        return self.scheme+"://" + self.server + self.prefix + \
+        return self.scheme+"://" + self.server + self.prefix + "/" + \
             "/".join(
                 [
                     self.identifier,
@@ -240,7 +243,7 @@ class IIIFUrl:
             ".{}".format(self.format)
 
     def to_info_url(self):
-        return self.scheme+"://" + self.server + self.prefix + \
+        return self.scheme+"://" + self.server + self.prefix + "/" + \
             self.identifier + "/info.json"
 
     def validate(self):
@@ -271,6 +274,11 @@ class IIIFUrl:
         return self._server
 
     def set_prefix(self, x):
+        if not x:
+            self._prefix = ""
+            return
+        if not x.startswith("/"):
+            raise ParameterError("Prefixes must start with '/'")
         old = self.prefix
         try:
             self._prefix = x
