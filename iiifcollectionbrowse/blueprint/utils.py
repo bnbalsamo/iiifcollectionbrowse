@@ -5,6 +5,14 @@ import urllib.parse
 # {scheme}://{server}{/prefix}/{identifier}/{region}/{size}/{rotation}/{quality}.{format}
 
 
+def escape_identifier(identifier):
+    return urllib.parse.urlquote(identifier, safe='')
+
+
+def unescape_identifier(identifier):
+    return urllib.parse.urlunquote(identifier)
+
+
 class ParameterError(Exception):
     pass
 
@@ -57,14 +65,10 @@ class IIIFUrl:
         if url.endswith("info.json"):
             p = urllib.parse.urlparse(url).path
             s = p.split("/")[-2]
-            if "/" in s:
-                raise ParameterError("'/' in identifier.")
             return s
         else:
             p = urllib.parse.urlparse(url).path
             s = p.split("/")[-5]
-            if "/" in s:
-                raise ParameterError("'/' in identifier.")
             return s
 
     @classmethod
@@ -182,6 +186,9 @@ class IIIFUrl:
 
     @classmethod
     def from_image_url(cls, url):
+        url = urllib.parse.urlunparse(
+            urllib.parse.urlparse(url)[0:3] + ("",)*3
+        )
         return IIIFUrl(
             cls.parse_scheme_url_component(url),
             cls.parse_server_url_component(url),
@@ -197,6 +204,9 @@ class IIIFUrl:
 
     @classmethod
     def from_info_url(cls, url):
+        url = urllib.parse.urlunparse(
+            urllib.parse.urlparse(url)[0:3] + ("",)*3
+        )
         return IIIFUrl(
             cls.parse_scheme_url_component(url),
             cls.parse_server_url_component(url),
@@ -207,6 +217,9 @@ class IIIFUrl:
 
     @classmethod
     def from_url(cls, url):
+        url = urllib.parse.urlunparse(
+            urllib.parse.urlparse(url)[0:3] + ("",)*3
+        )
         if url.endswith("info.json"):
             return cls.from_info_url(url)
         else:
@@ -214,7 +227,7 @@ class IIIFUrl:
 
     def __init__(
         self, scheme, server, prefix, identifier,
-        region="full", size="max", rotation="0",
+        region="full", size="full", rotation="0",
         quality="default", format="jpg", validate=True
     ):
         self._scheme = scheme
