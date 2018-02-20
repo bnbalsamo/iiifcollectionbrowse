@@ -147,6 +147,7 @@ def collection(c_url):
     except Exception:
         page = 1
     # Thumbnail view - paginated
+    # Note that at any point if page < 0 we use list view.
     if rj.get('viewingHint') == "individuals" and page > 0:
         # 30 results per page max, to not block too long on
         # dynamically generating thumbnails even in bad cases
